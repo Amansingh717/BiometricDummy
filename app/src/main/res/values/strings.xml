@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">BiometricDummy</string>
+    <string name="text_decrypt">Decrypt with authentication</string>
+    <string name="text_encrypt">Encrypt with authentication</string>
+    <string name="prompt_info_title">Authenticate Now</string>
+    <string name="prompt_info_subtitle">Use your fingerprint for authentication</string>
+    <string name="prompt_info_description">Your fingerprint authentication is mandatory.</string>
+    <string name="prompt_info_use_app_password">Cancel</string>
+    <string name="edit_text_hint">Enter data to encrypt here</string>
+    <string name="secret_key_name">my_secret_key</string>
+</resources>
