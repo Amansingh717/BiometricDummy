@@ -7,7 +7,6 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
-import java.nio.charset.Charset
 
 private const val TAG = "biometricDummy"
 
@@ -17,8 +16,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
     private lateinit var secretKeyName: String
     private var readyToEncrypt: Boolean = false
-    private lateinit var cipherText: ByteArray
-    private lateinit var initializationVector: ByteArray
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +78,11 @@ class MainActivity : AppCompatActivity() {
                 .canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS
         ) {
             val cipher = cryptographyManager.getInitializedCipherForEncryption(secretKeyName)
-            biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            if (cipher != null) try {
+                biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            } catch (e: Exception) {
+                Log.d(TAG, "Error occurred in encryption")
+            }
         }
     }
 
@@ -90,24 +91,21 @@ class MainActivity : AppCompatActivity() {
         if (BiometricManager.from(applicationContext).canAuthenticate() == BiometricManager
                 .BIOMETRIC_SUCCESS
         ) {
-            val cipher = cryptographyManager.getInitializedCipherForDecryption(
-                secretKeyName,
-                initializationVector
-            )
-            biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            val cipher = cryptographyManager.getInitializedCipherForDecryption(secretKeyName)
+            if (cipher != null) try {
+                biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            } catch (e: Exception) {
+                Log.d(TAG, "Error occurred in decryption")
+            }
         }
     }
 
     private fun processData(cryptoObject: BiometricPrompt.CryptoObject?) {
         val data = if (readyToEncrypt) {
             val text = editText.text.toString()
-            val encryptedData = cryptographyManager.encryptData(text, cryptoObject?.cipher!!)
-            cipherText = encryptedData.cipherText
-            initializationVector = encryptedData.initializationVector
-
-            String(cipherText, Charset.forName("UTF-8"))
+            cryptographyManager.encryptData(text, cryptoObject?.cipher!!)
         } else {
-            cryptographyManager.decryptData(cipherText, cryptoObject?.cipher!!)
+            cryptographyManager.decryptData(cryptoObject?.cipher!!)
         }
         textView.text = data
     }
